@@ -34,21 +34,12 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/organization/**").hasAnyAuthority(
+                        .requestMatchers(HttpMethod.GET, "/organizations/**").hasAnyAuthority(
                                 UserRole.ADMIN.name(),
                                 UserRole.USER.name()
                         )
-                        .requestMatchers(HttpMethod.DELETE, "/organization/**").hasAnyAuthority(
-                                UserRole.ADMIN.name()
-                        )
-                        .requestMatchers(HttpMethod.POST, "/organization/**").hasAnyAuthority(
-                                UserRole.ADMIN.name()
-                        )
-                        .requestMatchers(HttpMethod.PUT, "/organization/**").hasAnyAuthority(
-                                UserRole.ADMIN.name()
-                        )
+                        .requestMatchers("/organizations/**").hasAuthority(UserRole.ADMIN.name()                        )
                         .requestMatchers("users/**").hasAnyAuthority(UserRole.ADMIN.name())
-                        .requestMatchers("/organizations/**").hasAnyAuthority(UserRole.ADMIN.name(), UserRole.USER.name())
                         .anyRequest().authenticated()
                 );
         return http.build();

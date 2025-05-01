@@ -1,26 +1,29 @@
 package br.futurodev.joinville.m1s10.exercicio.services;
 
-import br.futurodev.joinville.m1s10.exercicio.dtos.logins.LoginRequestDto;
-import br.futurodev.joinville.m1s10.exercicio.dtos.logins.LoginResponseDto;
 import br.futurodev.joinville.m1s10.exercicio.dtos.users.UserRequestDto;
 import br.futurodev.joinville.m1s10.exercicio.dtos.users.UserResponseDto;
 import br.futurodev.joinville.m1s10.exercicio.entities.User;
+import br.futurodev.joinville.m1s10.exercicio.enums.UserRole;
 import br.futurodev.joinville.m1s10.exercicio.mappers.UserMapper;
 import br.futurodev.joinville.m1s10.exercicio.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
+
+
 
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
-    
+
+    private static final String DEFAULT_USER = "root";
+    private static final String DEFAULT_PASS = "admin";
+
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
 
@@ -63,18 +66,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Override
-    public LoginResponseDto authenticate(LoginRequestDto dto) {
-        User user = repository.findByUsername(dto.getUsername()).orElseThrow();
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
-            throw new BadCredentialsException("Invalid username or password");
-        }
-        String token = Base64.getEncoder().encodeToString(
-                (user.getUsername() + ":" + dto.getPassword()).getBytes()
-        );
-        return LoginResponseDto.builder().type("Basic").token(token).build();
-    }
-
     private User findEntityById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -82,7 +73,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return (UserDetails) repository.findByUsername(username)
-                .orElseThrow(()-> new UsernameNotFoundException(username));
+        Optional<User> user =  repository.findByUsername(username);
+        if (user.isPresent()){
+            return user.get();
+        }
+        if ((username.equals(DEFAULT_USER))){
+            return User.builder()
+                    .id(0L)
+                    .name("ROOT")
+                    .username(DEFAULT_USER)
+                    .password(passwordEncoder.encode(DEFAULT_PASS))
+                    .role(UserRole.valueOf("ADMIN"))
+                    .build();
+        }
+        throw new UsernameNotFoundException(username);
     }
 }

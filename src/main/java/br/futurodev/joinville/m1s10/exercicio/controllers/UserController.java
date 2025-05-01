@@ -1,4 +1,4 @@
-package br.futurodev.joinville.m1s10.exercicio.dtos.controllers;
+package br.futurodev.joinville.m1s10.exercicio.controllers;
 
 import br.futurodev.joinville.m1s10.exercicio.dtos.users.UserRequestDto;
 import br.futurodev.joinville.m1s10.exercicio.dtos.users.UserResponseDto;
